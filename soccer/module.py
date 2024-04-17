@@ -235,12 +235,7 @@ class Soccer(
 
         word = self._get_word(message)
 
-        history = [
-            message
-            async for message in message.channel.history(limit=self.history_limit)
-        ]
-
-        async for history_message in history:
+        async for history_message in message.channel.history(limit=self.history_limit):
             if history_message.author.bot:
                 continue
 
