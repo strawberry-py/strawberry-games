@@ -4,7 +4,7 @@ import re
 from typing import Union
 
 import discord
-from discord import DMChannel, GroupChannel, PartialMessageable, TextChannel, Thread
+from discord import app_commands
 from discord.ext import commands
 
 from pie import check, database, i18n, logger, utils
@@ -21,7 +21,17 @@ bot_log = logger.Bot.logger()
 IGNORE_REGEX = r"^\*\**[^*]*\*\**"
 
 
-class Soccer(commands.Cog):
+class Soccer(
+    commands.GroupCog, name="soccer", description="Word soccer judge management"
+):
+    soccer_channel = app_commands.Group(
+        name="channel", description="Manage word soccer channels."
+    )
+
+    soccer_ignored = app_commands.Group(
+        name="ignored", description="Manage word soccer ignored threads."
+    )
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.history_limit = 500
@@ -29,56 +39,56 @@ class Soccer(commands.Cog):
         self.embed_cache = {}
 
     @check.acl2(check.ACLevel.SUBMOD)
-    @commands.guild_only()
-    @commands.group(name="soccer")
-    async def soccer_(self, ctx):
-        """Word soccer judge."""
-        await utils.discord.send_help(ctx)
-
-    @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_.group(name="channel")
-    async def soccer_channel_(self, ctx):
-        """Manage word soccer channels."""
-        await utils.discord.send_help(ctx)
-
-    @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_channel_.group(name="add")
-    async def soccer_channel_add(self, ctx, channel: discord.TextChannel):
-        """Mark channel as word soccer channel."""
+    @soccer_channel.command(
+        name="add", description="Mark channel as word soccer channel."
+    )
+    async def soccer_channel_add(
+        self, itx: discord.Interaction, channel: discord.TextChannel
+    ):
         SoccerChannel.add(channel.guild.id, channel.id)
-        await ctx.reply(
-            _(ctx, "Channel **{channel}** marked as word soccer.").format(
-                channel=channel.name
-            )
+        await itx.response.send_message(
+            _(itx, "Channel **{channel}** marked as word soccer.").format(
+                channel=channel.name,
+            ),
+            ephemeral=True,
         )
 
     @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_channel_.group(name="remove")
-    async def soccer_channel_remove(self, ctx, channel: discord.TextChannel):
-        """Unmark channel as word soccer channel."""
+    @soccer_channel.command(
+        name="remove", description="Unmark channel as word soccer channel."
+    )
+    async def soccer_channel_remove(
+        self, itx: discord.Interaction, channel: discord.TextChannel
+    ):
         db_channel = SoccerChannel.get(channel.guild.id, channel.id)
 
         if not db_channel:
-            await ctx.reply(_(ctx, "Channel is not marked as word soccer!"))
+            await itx.response.send_message(
+                _(itx, "Channel is not marked as word soccer!"), ephemeral=True
+            )
 
         db_channel.delete()
 
-        await ctx.reply(
-            _(ctx, "Channel **{channel}** unmarked as word soccer.").format(
+        await itx.response.send_message(
+            _(itx, "Channel **{channel}** unmarked as word soccer.").format(
                 channel=channel.name
-            )
+            ),
+            ephemeral=True,
         )
 
     @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_channel_.group(name="list")
-    async def soccer_channel_list(self, ctx):
-        """List word soccer channel."""
-        db_channels = SoccerChannel.get_all(ctx.guild.id)
+    @soccer_channel.command(name="list", description="List word soccer channels.")
+    async def soccer_channel_list(self, itx: discord.Interaction):
+        db_channels = SoccerChannel.get_all(itx.guild.id)
 
         if not db_channels:
-            return await ctx.reply(_(ctx, "No channels found."))
+            return await itx.response.send_message(
+                _(itx, "No channels found."), ephemeral=True
+            )
 
-        channels = [ctx.guild.get_channel(c.channel_id) for c in db_channels]
+        await itx.response.defer(thinking=True, ephemeral=True)
+
+        channels = [itx.guild.get_channel(c.channel_id) for c in db_channels]
         column_name_width: int = max([len(c.name) for c in channels if c])
 
         result = []
@@ -87,48 +97,60 @@ class Soccer(commands.Cog):
             line = f"#{name:<{column_name_width}} {channel.id}"
             result.append(line)
 
-        await ctx.reply("```" + "\n".join(result) + "```")
-
-    @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_.group(name="ignored")
-    async def soccer_ignored_(self, ctx):
-        """Manage threads ignored by word soccer judge.."""
-        await utils.discord.send_help(ctx)
-
-    @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_ignored_.group(name="add")
-    async def soccer_ignored_add(self, ctx, thread: discord.Thread):
-        """Mark thread as ignored by word soccer judge."""
-        SoccerIgnored.add(thread.guild.id, thread.id)
-        await ctx.reply(
-            _(ctx, "Thread **{thread}** will be ignored.").format(thread=thread.name)
+        await (await itx.original_response()).edit(
+            content=("```" + "\n".join(result) + "```")
         )
 
     @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_ignored_.group(name="remove")
-    async def soccer_ignored_remove(self, ctx, thread: discord.Thread):
-        """Unmark thread as ignored by word soccer judge."""
+    @soccer_ignored.command(
+        name="add", description="Mark thread as ignored by word soccer judge."
+    )
+    async def soccer_ignored_add(
+        self, itx: discord.Interaction, thread: discord.Thread
+    ):
+        SoccerIgnored.add(thread.guild.id, thread.id)
+        await itx.response.send_message(
+            _(itx, "Thread **{thread}** will be ignored.").format(thread=thread.name),
+            ephemeral=True,
+        )
+
+    @check.acl2(check.ACLevel.SUBMOD)
+    @soccer_ignored.command(
+        name="remove", description="Unmark thread as ignored by word soccer judge."
+    )
+    async def soccer_ignored_remove(
+        self, itx: discord.Interaction, thread: discord.Thread
+    ):
         db_thread = SoccerIgnored.get(thread.guild.id, thread.id)
 
         if not db_thread:
-            await ctx.reply(_(ctx, "Thread is not marked as ignored!"))
+            await itx.response.send_message(
+                _(itx, "Thread is not marked as ignored!"), ephemeral=True
+            )
+            return
 
         db_thread.delete()
 
-        await ctx.reply(
-            _(ctx, "Thread **{thread}** is no more ignored.").format(thread=thread.name)
+        await itx.response.send_message(
+            _(itx, "Thread **{thread}** is no more ignored.").format(
+                thread=thread.name
+            ),
+            ephemeral=True,
         )
 
     @check.acl2(check.ACLevel.SUBMOD)
-    @soccer_ignored_.group(name="list")
-    async def soccer_ignored_list(self, ctx):
-        """List threads marked as ignored by word soccer judge."""
-        db_threads = SoccerIgnored.get_all(ctx.guild.id)
+    @soccer_ignored.command(
+        name="list", description="List threads marked as ignored by word soccer judge."
+    )
+    async def soccer_ignored_list(self, itx: discord.Interaction):
+        db_threads = SoccerIgnored.get_all(itx.guild.id)
 
         if not db_threads:
-            return await ctx.reply(_(ctx, "No threads found."))
+            await itx.response.send_message(_(itx, "No threads found."), ephemeral=True)
+            return
 
-        threads = [ctx.guild.get_thread(t.thread_id) for t in db_threads]
+        itx.response.defer(ephemeral=True, thinking=True)
+        threads = [itx.guild.get_thread(t.thread_id) for t in db_threads]
         column_name_width: int = max([len(t.name) for t in threads if t])
 
         result = []
@@ -137,10 +159,12 @@ class Soccer(commands.Cog):
             line = f"#{name:<{column_name_width}} {channel.id}"
             result.append(line)
 
-        await ctx.reply("```" + "\n".join(result) + "```")
+        await (await itx.original_response()).edit(
+            content=("```" + "\n".join(result) + "```")
+        )
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
 
@@ -273,7 +297,11 @@ class Soccer(commands.Cog):
     def _is_soccer_channel(
         self,
         channel: Union[
-            TextChannel, Thread, DMChannel, GroupChannel, PartialMessageable
+            discord.TextChannel,
+            discord.Thread,
+            discord.DMChannel,
+            discord.GroupChannel,
+            discord.PartialMessageable,
         ],
     ) -> bool:
         if not isinstance(channel, discord.Thread):
