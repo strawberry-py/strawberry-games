@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import List, Union
 
 import discord
 from discord import app_commands
@@ -149,8 +149,27 @@ class Soccer(
             await itx.response.send_message(_(itx, "No threads found."), ephemeral=True)
             return
 
-        itx.response.defer(ephemeral=True, thinking=True)
-        threads = [itx.guild.get_thread(t.thread_id) for t in db_threads]
+        await itx.response.defer(ephemeral=True, thinking=True)
+        threads: List[discord.Thread] = []
+        column_name_width: int = 0
+
+        for db_thread in db_threads:
+            thread = await itx.guild.fetch_channel(db_thread.thread_id)
+            if not thread:
+                await guild_log.warning(
+                    itx.user,
+                    itx.channel,
+                    f"Soccer ignored thread with ID {db_thread.thread_id} not found. Removing.",
+                )
+                db_thread.delete()
+
+            column_name_width = (
+                len(thread.name)
+                if len(thread.name) > column_name_width
+                else column_name_width
+            )
+            threads.append(thread)
+
         column_name_width: int = max([len(t.name) for t in threads if t])
 
         result = []
