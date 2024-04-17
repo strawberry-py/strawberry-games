@@ -1,0 +1,32 @@
+msgid Channel **{channel}** marked as word soccer.
+msgstr Kanál **{channel}** označen jako slovní fotbal.
+
+msgid Channel is not marked as word soccer!
+msgstr Kanál není označen jako slovní fotbal!
+
+msgid Channel **{channel}** unmarked as word soccer.
+msgstr Kanál **{channel}** odznačen jako slovní fotbal.
+
+msgid No channels found.
+msgstr Žádné kanály nenalezeny.
+
+msgid Thread **{thread}** will be ignored.
+msgstr Vlákno **{thread}** bude ignorováno.
+
+msgid Thread is not marked as ignored!
+msgstr Vlákno není označeno jako ignorované!
+
+msgid Thread **{thread}** is no more ignored.
+msgstr Vlákno **{thread}** již není ignorované.
+
+msgid No threads found.
+msgstr Žádné vlákna nenaleezena.
+
+msgid The judge's whistle
+msgstr Píšťalka rozhodčího
+
+msgid Word **{word}** was already used in last {limit} messages!
+msgstr Slovo **{word}** bylo již použito v posledních {limit} zprávách!
+
+msgid Previously used:
+msgstr Předchozí použití:

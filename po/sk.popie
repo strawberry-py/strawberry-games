@@ -1,0 +1,32 @@
+msgid Channel **{channel}** marked as word soccer.
+msgstr
+
+msgid Channel is not marked as word soccer!
+msgstr
+
+msgid Channel **{channel}** unmarked as word soccer.
+msgstr
+
+msgid No channels found.
+msgstr
+
+msgid Thread **{thread}** will be ignored.
+msgstr
+
+msgid Thread is not marked as ignored!
+msgstr
+
+msgid Thread **{thread}** is no more ignored.
+msgstr
+
+msgid No threads found.
+msgstr
+
+msgid The judge's whistle
+msgstr
+
+msgid Word **{word}** was already used in last {limit} messages!
+msgstr
+
+msgid Previously used:
+msgstr
