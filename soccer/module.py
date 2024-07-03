@@ -251,14 +251,14 @@ class Soccer(
         await self._delete_report(message)
 
     async def _delete_report(self, message):
-        if message.id in self.embed_cache:
-            message = self.embed_cache[message.id]
+        message_id = message.id
+        if message_id in self.embed_cache:
+            message = self.embed_cache[message_id]
             try:
                 await message.delete()
             except discord.errors.HTTPException:
                 pass
-
-            self.embed_cache.pop(message.id)
+            del self.embed_cache[message_id]
             return
 
         messages = message.channel.history(after=message, limit=3, oldest_first=True)
