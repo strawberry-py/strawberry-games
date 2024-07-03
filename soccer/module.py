@@ -261,10 +261,8 @@ class Soccer(
             self.embed_cache.pop(message.id)
             return
 
-        messages = await message.channel.history(
-            after=message, limit=3, oldest_first=True
-        )
-        for report in messages:
+        messages = message.channel.history(after=message, limit=3, oldest_first=True)
+        async for report in messages:
             if not report.author.bot:
                 continue
             if len(report.embeds) != 1 or not isinstance(
