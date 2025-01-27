@@ -38,7 +38,7 @@ class Soccer(
 
         self.embed_cache = {}
 
-    @check.acl2(check.ACLevel.SUBMOD)
+    @check.app_acl(check.ACLevel.SUBMOD)
     @soccer_channel.command(
         name="add", description="Mark channel as word soccer channel."
     )
@@ -53,7 +53,7 @@ class Soccer(
             ephemeral=True,
         )
 
-    @check.acl2(check.ACLevel.SUBMOD)
+    @check.app_acl(check.ACLevel.SUBMOD)
     @soccer_channel.command(
         name="remove", description="Unmark channel as word soccer channel."
     )
@@ -76,7 +76,7 @@ class Soccer(
             ephemeral=True,
         )
 
-    @check.acl2(check.ACLevel.SUBMOD)
+    @check.app_acl(check.ACLevel.SUBMOD)
     @soccer_channel.command(name="list", description="List word soccer channels.")
     async def soccer_channel_list(self, itx: discord.Interaction):
         db_channels = SoccerChannel.get_all(itx.guild.id)
@@ -101,7 +101,7 @@ class Soccer(
             content=("```" + "\n".join(result) + "```")
         )
 
-    @check.acl2(check.ACLevel.SUBMOD)
+    @check.app_acl(check.ACLevel.SUBMOD)
     @soccer_ignored.command(
         name="add", description="Mark thread as ignored by word soccer judge."
     )
@@ -114,7 +114,7 @@ class Soccer(
             ephemeral=True,
         )
 
-    @check.acl2(check.ACLevel.SUBMOD)
+    @check.app_acl(check.ACLevel.SUBMOD)
     @soccer_ignored.command(
         name="remove", description="Unmark thread as ignored by word soccer judge."
     )
@@ -138,7 +138,7 @@ class Soccer(
             ephemeral=True,
         )
 
-    @check.acl2(check.ACLevel.SUBMOD)
+    @check.app_acl(check.ACLevel.SUBMOD)
     @soccer_ignored.command(
         name="list", description="List threads marked as ignored by word soccer judge."
     )
